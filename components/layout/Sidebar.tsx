@@ -1,40 +1,13 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useEffect, useState } from "react";
 import {
   LayoutDashboard, Users, Truck, MapPin,
-  Building2, ShoppingBag, LogOut, Wallet, BarChart2, CheckSquare, AlertTriangle,
+  Building2, ShoppingBag, LogOut, Wallet, AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/hooks/useAuth";
-import { livreursApi } from "@/lib/api";
 
-// ── hook: fetch pending validation count (drivers + pharmacies) ───────────
-function usePendingValidationsCount() {
-  const [count, setCount] = useState<number | null>(null);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function load() {
-      try {
-        const res = await livreursApi.pendingCount() as { count: number } | any[];
-        const count = Array.isArray(res) ? res.length : (res as { count: number }).count ?? 0;
-        if (!cancelled) setCount(count);
-      } catch {
-        // silently fail
-      }
-    }
-
-    load();
-    // Refresh every 60 s so the count stays up-to-date while the admin works
-    const timer = setInterval(load, 60_000);
-    return () => { cancelled = true; clearInterval(timer); };
-  }, []);
-
-  return count;
-}
 
 // ── static nav config ───────────────────────────────────────────────────────
 const linkGroups = [
@@ -57,15 +30,13 @@ const linkGroups = [
   {
     title: "FINANCE",
     links: [
-      { href: "/wallet",    label: "Wallet",    icon: Wallet },
-      { href: "/analytics", label: "Analytics", icon: BarChart2 },
+      { href: "/wallet", label: "Wallet", icon: Wallet },
     ],
   },
   {
     title: "MODÉRATION",
     links: [
-      { href: "/validations", label: "Validations", icon: CheckSquare, dynamicBadge: true },
-      { href: "/litiges",     label: "Litiges",     icon: AlertTriangle },
+      { href: "/litiges", label: "Litiges", icon: AlertTriangle },
     ],
   },
 ];
@@ -74,7 +45,6 @@ const linkGroups = [
 export function Sidebar() {
   const pathname = usePathname();
   const { logout } = useAuth();
-  const pendingCount = usePendingValidationsCount();
 
   return (
     <aside className="w-[260px] bg-white border-r border-gray-100 flex flex-col shrink-0 z-20 shadow-[0_0_15px_0_rgba(47,43,61,0.05)] overflow-y-auto">
@@ -95,12 +65,8 @@ export function Sidebar() {
               {group.title}
             </p>
             <div className="space-y-1">
-              {group.links.map(({ href, label, icon: Icon, dynamicBadge }) => {
+              {group.links.map(({ href, label, icon: Icon }) => {
                 const isActive = pathname === href;
-                // Show badge only when we have a positive count
-                const badge = dynamicBadge && pendingCount != null && pendingCount > 0
-                  ? pendingCount
-                  : undefined;
 
                 return (
                   <Link
@@ -117,16 +83,7 @@ export function Sidebar() {
                       <Icon size={20} className={cn("shrink-0", isActive ? "text-white" : "text-[#2f2b3d]/50")} />
                       {label}
                     </div>
-                    {badge !== undefined && (
-                      <span
-                        className={cn(
-                          "text-[11px] font-bold px-2 py-0.5 rounded-full flex items-center justify-center min-w-[20px] h-[20px]",
-                          isActive ? "bg-white/20 text-white" : "bg-red-50 text-red-600"
-                        )}
-                      >
-                        {badge}
-                      </span>
-                    )}
+
                   </Link>
                 );
               })}
