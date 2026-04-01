@@ -7,7 +7,7 @@ import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PaginationControls } from "@/components/ui/pagination-controls";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Eye, Filter, Loader2 } from "lucide-react";
+import { Search, Filter, Loader2 } from "lucide-react";
 import { missionsApi } from "@/lib/api";
 
 const periodes = [
@@ -184,20 +184,19 @@ function MissionsContent() {
                   <th className="text-left px-4 py-3 font-medium rounded-tl-lg">N° Mission</th>
                   <th className="text-left px-4 py-3 font-medium">Livreur</th>
                   <th className="text-left px-4 py-3 font-medium">Date (Création)</th>
-                  <th className="text-left px-4 py-3 font-medium">Statut</th>
-                  <th className="text-right px-4 py-3 font-medium rounded-tr-lg">Actions</th>
+                  <th className="text-left px-4 py-3 font-medium rounded-tr-lg">Statut</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-50">
                 {loading ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-10">
+                    <td colSpan={4} className="text-center py-10">
                       <Loader2 className="animate-spin mx-auto text-[#8c57ff]" size={32} />
                     </td>
                   </tr>
                 ) : missions.length === 0 ? (
                   <tr>
-                    <td colSpan={5} className="text-center py-10 text-gray-500">
+                    <td colSpan={4} className="text-center py-10 text-gray-500">
                       Aucune mission trouvée.
                     </td>
                   </tr>
@@ -214,11 +213,6 @@ function MissionsContent() {
                       <span className={`px-2.5 py-1 rounded-md text-xs font-semibold ${statusColor(m.status)}`}>
                         {statuses.find(s => s.value === m.status)?.label || m.status}
                       </span>
-                    </td>
-                    <td className="px-4 py-4 text-right">
-                      <Button variant="ghost" size="icon" onClick={() => router.push(`/missions/${m.id}`)} className="hover:bg-purple-50 hover:text-[#8c57ff] rounded-lg">
-                        <Eye size={18} />
-                      </Button>
                     </td>
                   </tr>
                 ))}

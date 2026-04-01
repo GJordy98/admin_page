@@ -12,7 +12,7 @@ export default function CommandeDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params.id as string;
-  
+
   const [commande, setCommande] = useState<Commande | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -25,8 +25,10 @@ export default function CommandeDetailPage() {
     try {
       setLoading(true);
       setError(null);
-      const data = await commandesApi.get(id) as Commande;
-      setCommande(data);
+      const resp = await commandesApi.get(id) as any;
+      const data = resp?.data || resp; // Unwrap object if needed
+      console.log("Détail Commande API Response:", data);
+      setCommande(data as Commande);
     } catch (err: any) {
       setError(err.message || "Failed to load order data.");
     } finally {
@@ -46,18 +48,23 @@ export default function CommandeDetailPage() {
     return <div className="p-6 text-red-500 font-medium">Error: {error || "Commande not found."}</div>;
   }
 
-  const baseProductAmount = Number(commande.total_amount ?? commande.montant_total ?? commande.cart?.total_amount ?? 0);
-  const deliveryFee = Number(commande.delivery_fee ?? 0);
-  const totalAmount = baseProductAmount + deliveryFee;
+  const itemsList: any[] = commande.items || commande.cart?.items || [];
 
-  const itemsList = commande.items || commande.cart?.items || [];
+  const deliveryFee = Number(commande.delivery_fee ?? 0);
+  // Calculer uniquement le total des articles avec le statut "RESERVED"
+  const reservedItemsSum = itemsList
+    .filter(item => item.status === "RESERVED")
+    .reduce((acc, item) => acc + Number(item.line_total || (item.unit_price * item.quantity) || 0), 0);
+
+  const baseProductAmount = reservedItemsSum;
+  const totalAmount = reservedItemsSum + deliveryFee;
 
   return (
     <div className="space-y-6">
       <div className="flex items-center gap-4">
-        <Button 
-          variant="ghost" 
-          size="icon" 
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={() => router.back()}
           className="hover:bg-gray-100 rounded-full text-gray-600"
         >
@@ -83,9 +90,20 @@ export default function CommandeDetailPage() {
                 <div className="space-y-4">
                   <div className="space-y-1">
                     <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Patient</p>
-                    <div className="flex items-center gap-2 text-[#2f2b3d] font-medium text-lg">
-                      <User size={18} className="text-[#8c57ff]" />
-                      {commande.patient?.first_name} {commande.patient?.last_name}
+                    <div className="flex flex-col gap-1">
+                      <div className="flex items-center gap-2 text-[#2f2b3d] font-medium text-lg">
+                        <User size={18} className="text-[#8c57ff]" />
+                        {commande.patient?.first_name || commande.patient?.last_name 
+                          ? `${commande.patient?.first_name || ''} ${commande.patient?.last_name || ''}` 
+                          : commande.patient?.id 
+                            ? `Patient #${(commande.patient.id as string).split('-')[0]}` 
+                            : (typeof commande.patient === 'string' ? `Patient #${(commande.patient as string).split('-')[0]}` : "ID inconnu")
+                        }
+                      </div>
+                      <div className="text-sm text-gray-500 ml-6 flex flex-col">
+                        <span>{commande.patient?.telephone || ""}</span>
+                        <span>{commande.patient?.email || ""}</span>
+                      </div>
                     </div>
                   </div>
                   <div className="space-y-1">
@@ -93,6 +111,12 @@ export default function CommandeDetailPage() {
                     <div className="flex items-center gap-2 text-gray-600">
                       <Calendar size={16} className="text-gray-300" />
                       {(commande.created_at || commande.date_creation) ? new Date(commande.created_at || commande.date_creation!).toLocaleString("fr-FR", { dateStyle: "long", timeStyle: "short" }) : "N/A"}
+                    </div>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-gray-400 text-xs font-semibold uppercase tracking-wider">Dernière mise à jour</p>
+                    <div className="flex items-center gap-2 text-gray-500 text-sm">
+                      {commande.updated_at ? new Date(commande.updated_at).toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "short" }) : "-"}
                     </div>
                   </div>
                 </div>
@@ -129,13 +153,26 @@ export default function CommandeDetailPage() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-50">
-                  {itemsList.length > 0 ? itemsList.map((item, index) => (
-                    <tr key={item.id || index} className="hover:bg-gray-50/50 transition-colors">
-                      <td className="px-6 py-4 font-medium text-gray-900">{item.product_name || "Produit sans nom"}</td>
-                      <td className="px-6 py-4 text-center text-gray-600">{Number(item.quantity || 1)}</td>
-                      <td className="px-6 py-4 text-right font-semibold text-gray-900">{(Number(item.price || 0) * Number(item.quantity || 1)).toLocaleString()} XAF</td>
-                    </tr>
-                  )) : (
+                  {itemsList.length > 0 ? itemsList.map((item: any, index: number) => {
+                    const isCancelled = item.status === "CANCELLED";
+                    return (
+                      <tr key={item.id || index} className={`hover:bg-gray-50/50 transition-colors ${isCancelled ? 'opacity-60 bg-gray-50/30' : ''}`}>
+                        <td className="px-6 py-4">
+                          <div className={`font-medium ${isCancelled ? 'text-gray-500 line-through' : 'text-gray-900'}`}>{item.product?.name || item.product_name || "Produit sans nom"}</div>
+                          {item.product?.dci && (
+                            <div className="text-xs text-gray-500 mt-1">
+                              {item.product.dci} {item.product.galenic ? `• ${item.product.galenic}` : ""}
+                            </div>
+                          )}
+                          {item.status && <div className={`text-[10px] uppercase font-bold mt-1 ${isCancelled ? 'text-red-400' : 'text-purple-400'}`}>Status: {item.status}</div>}
+                        </td>
+                        <td className={`px-6 py-4 text-center font-medium ${isCancelled ? 'text-gray-400' : 'text-gray-600'}`}>{Number(item.quantity || 1)}</td>
+                        <td className={`px-6 py-4 text-right font-semibold ${isCancelled ? 'text-gray-400 line-through' : 'text-[#8c57ff]'}`}>
+                          {Number(item.line_total ?? (Number(item.unit_price ?? item.price ?? 0) * Number(item.quantity ?? 1))).toLocaleString()} XAF
+                        </td>
+                      </tr>
+                    );
+                  }) : (
                     <tr className="hover:bg-gray-50/50 transition-colors">
                       <td colSpan={3} className="px-6 py-6 text-center text-sm font-medium text-gray-500">Aucun article transmis par l'API principale</td>
                     </tr>
@@ -172,14 +209,7 @@ export default function CommandeDetailPage() {
             </CardContent>
           </Card>
 
-          <div className="flex flex-col gap-3">
-             <Button className="w-full bg-green-500 hover:bg-green-600 text-white h-11 rounded-xl font-semibold disabled:opacity-50">
-               Confirmer la livraison
-             </Button>
-             <Button variant="outline" className="w-full border-red-100 text-red-500 hover:bg-red-50 h-11 rounded-xl font-semibold">
-               Annuler la commande
-             </Button>
-          </div>
+
         </div>
       </div>
     </div>

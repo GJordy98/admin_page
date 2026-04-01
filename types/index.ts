@@ -129,15 +129,17 @@ export interface Commande {
   patient: any; // Using any or expanding properties to avoid type issues with nested or flat responses
   patient_name?: string;
   status: OrderStatus | string;
-  items?: OrderItem[];
+  items?: any[];
   cart?: {
     total_amount?: number | string;
     items?: OrderItem[];
   };
-  montant_total?: number;
-  total_amount?: number;
-  amount?: number;
-  delivery_fee?: number;
+  montant_total?: number | string;
+  total_amount?: number | string;
+  amount?: number | string;
+  delivery_fee?: number | string;
+  payment_status?: string;
+  updated_at?: string;
   product_amount?: number;
   montant_produits?: number;
   montant_sans_livraison?: number;
@@ -159,18 +161,24 @@ export interface Pickup {
 }
 
 export interface KPI {
-  total_commandes: number;
-  gain_total: number;
-  par_officine: {
-    officine: string;
-    nb_commandes: number;
-    gain: number;
+  total_orders: number;
+  total_revenue: number;
+  orders_per_officine: {
+    id: string;
+    name: string;
+    order_count: number;
+  }[];
+  revenue_per_officine: {
+    id: string;
+    name: string;
+    revenue: number;
   }[];
 }
 
 export interface DailyAmount {
   date: string;
-  montant: number;
+  total: number;
+  count: number;
 }
 
 export interface DashboardStats {
