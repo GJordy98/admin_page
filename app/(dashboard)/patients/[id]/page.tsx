@@ -90,7 +90,7 @@ export default function PatientDetailPage() {
   const u          = patient.user;
   const isActive   = u?.is_active ?? false;
   const fullName   = `${patient.first_name ?? u?.first_name ?? ""} ${patient.last_name ?? u?.last_name ?? ""}`.trim();
-  const totalSpent = commandes.reduce((acc, c) => acc + (c.montant_total || 0), 0);
+  const totalSpent = commandes.reduce((acc, c) => acc + Number(c.montant_total || 0), 0);
 
   return (
     <div className="space-y-6">
