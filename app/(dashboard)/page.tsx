@@ -88,23 +88,23 @@ export default function DashboardPage() {
       case '1j':
         return sorted.slice(-1).map((d) => ({
           name: new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
-          value: d.montant,
+          value: d.total,
         }));
       case '7j':
         return sorted.slice(-7).map((d) => ({
           name: new Date(d.date).toLocaleDateString('fr-FR', { weekday: 'short' }),
-          value: d.montant,
+          value: d.total,
         }));
       case '30j':
         return sorted.slice(-30).map((d) => ({
           name: new Date(d.date).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short' }),
-          value: d.montant,
+          value: d.total,
         }));
       case '12m': {
         const byMonth: Record<string, number> = {};
         sorted.forEach((d) => {
           const key = new Date(d.date).toLocaleDateString('fr-FR', { month: 'short', year: '2-digit' });
-          byMonth[key] = (byMonth[key] || 0) + d.montant;
+          byMonth[key] = (byMonth[key] || 0) + d.total;
         });
         return Object.entries(byMonth).slice(-12).map(([name, value]) => ({ name, value }));
       }
@@ -128,7 +128,7 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <StatsCard
           title="Gain Total"
-          value={`${(kpi?.gain_total || 0).toLocaleString()} F`}
+          value={`${(kpi?.total_revenue || 0).toLocaleString()} F`}
           color="purple"
           className="bg-white border border-gray-100 shadow-sm"
         >
