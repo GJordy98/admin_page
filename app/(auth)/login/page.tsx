@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Loader2, Eye, EyeOff } from "lucide-react";
 
-const LOGIN_URL = `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'https://e-doctorpharma.onrender.com'}/api/v1/login/`;
+const LOGIN_URL = `${process.env.NEXT_PUBLIC_API_URL?.replace('/api/v1', '') || 'https://api.edrtimpharmacie.com'}/api/v1/login/`;
 
 const COUNTRY_CODES = [
   { code: "+237", label: "Cameroun (CMR)" },

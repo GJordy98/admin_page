@@ -1,4 +1,4 @@
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://e-doctorpharma.onrender.com/api/v1";
+const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "https://api.edrtimpharmacie.com/api/v1";
 const API_PREFIX = "/admin/dashboard";
 
 function getToken(): string | null {
