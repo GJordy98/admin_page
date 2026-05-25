@@ -1,4 +1,4 @@
-const BASE = "https://e-doctorpharma.onrender.com";
+const BASE = "https://api.edrtimpharmacie.com";
 
 const candidates = [
   `${BASE}/api/v1/auth/token/`,
@@ -7,15 +7,19 @@ const candidates = [
   `${BASE}/api/token/`,
   `${BASE}/api/v1/auth/login/`,
   `${BASE}/api/v1/admin/login/`,
+  `${BASE}/api/v1/login/`,
 ];
 
-for (const url of candidates) {
-  const res = await fetch(url, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ email: "test@test.com", password: "test" }),
-    signal: AbortSignal.timeout(8000),
-  });
-  const icon = res.status === 404 ? "❌ 404" : `✅ ${res.status}`;
-  console.log(`${icon}  ${url}`);
+const res = await fetch(`${BASE}/api/v1/token/`, {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ email: "test@test.com", password: "test" }),
+});
+console.log("Status:", res.status);
+try {
+  const json = await res.json();
+  console.log("JSON response:", json);
+} catch (e) {
+  console.log("Not JSON or empty");
 }
+
