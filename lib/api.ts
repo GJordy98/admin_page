@@ -67,9 +67,9 @@ export const livreursApi = {
   deactivate:   (id: string) =>
     post(`${API_PREFIX}/drivers/${id}/deactivate/`),
   approve:      (id: string) =>
-    post(`${API_PREFIX}/drivers/${id}/approve/`),
+    post(`/delivery/${id}/review/`, { action: "APPROVED", reason: "" }),
   reject:       (id: string, reason?: string) =>
-    post(`${API_PREFIX}/drivers/${id}/reject/`, reason ? { rejection_reason: reason } : undefined),
+    post(`/delivery/${id}/review/`, { action: "REJECTED", reason: reason || "" }),
   pendingCount: () =>
     get<{ count: number }>(`${API_PREFIX}/drivers/?onboarding_status=PENDING&page=1`),
 };
